@@ -151,7 +151,7 @@ The system supports the following languages with automatic STT/TTS configuration
 ### Model Configuration
 
 - **YOLO Detection Threshold**: 0.5 (semantic similarity)
-- **TTS Speaker**: "hitesh" (Sarvam AI)
+- **TTS Speaker**: "shubh" (Sarvam AI bulbul:v3)
 - **VAD Model**: Silero VAD
 - **Depth Model**: Intel/zoedepth-nyu-kitti
 

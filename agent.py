@@ -16,7 +16,6 @@ from ultralytics import YOLO
 from sentence_transformers import SentenceTransformer, util
 import os
 import json
-import asyncio
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import threading
 import torch
@@ -454,7 +453,8 @@ async def entrypoint(ctx: agents.JobContext):
         llm="google/gemini-3-flash",
         tts=sarvam.TTS(
             target_language_code=userdata.preferred_language_code,
-            speaker="hitesh"
+            speaker="shubh",
+            model="bulbul:v3"
         ),
         vad=silero.VAD.load(),
         turn_detection=MultilingualModel(),

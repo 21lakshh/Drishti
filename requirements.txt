@@ -5,3 +5,8 @@ ultralytics
 sentence_transformers
 transformers
 timm
+qdrant-client
+openai
+langchain-community
+langchain-text-splitters
+pypdf

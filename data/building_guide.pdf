@@ -48,7 +48,7 @@ endobj
 endobj
 7 0 obj
 <<
-/Length 2694
+/Length 2989
 >>
 stream
 BT
@@ -62,7 +62,7 @@ T*
 T*
 /F1 11 Tf
 14 TL
-(HP Laptop: The user's Windows HP laptop is permanently located on the Study Table in the) Tj
+(- HP Laptop: The user's Windows HP laptop is permanently located on the Study Table in the) Tj
 T*
 /F1 11 Tf
 14 TL
@@ -73,29 +73,29 @@ T*
 T*
 /F1 11 Tf
 14 TL
-(HP Laptop Charger: The charger for the HP laptop is found on the Study Table in the Workstation) Tj
+(- HP Laptop Charger: The charger for the HP laptop is found on the Study Table in the) Tj
 T*
 /F1 11 Tf
 14 TL
-(Area.) Tj
-T*
-/F1 11 Tf
-14 TL
-T*
-/F1 11 Tf
-14 TL
-(Mouse: The computer mouse is located on the Study Table in the Workstation Area, next to the HP) Tj
-T*
-/F1 11 Tf
-14 TL
-(laptop.) Tj
+(Workstation Area.) Tj
 T*
 /F1 11 Tf
 14 TL
 T*
 /F1 11 Tf
 14 TL
-(Perfumes and Deodorants: The user's perfumes, roll-ons, and personal care items are stored on) Tj
+(- Mouse: The computer mouse is located on the Study Table in the Workstation Area, next to the) Tj
+T*
+/F1 11 Tf
+14 TL
+(HP laptop.) Tj
+T*
+/F1 11 Tf
+14 TL
+T*
+/F1 11 Tf
+14 TL
+(- Perfumes and Deodorants: The user's perfumes, roll-ons, and personal care items are stored on) Tj
 T*
 /F1 11 Tf
 14 TL
@@ -106,21 +106,21 @@ T*
 T*
 /F1 11 Tf
 14 TL
-(MacBook: The user's MacBook is primarily located on the Bed in the Sleeping Area.) Tj
+(- MacBook: The user's MacBook is primarily located on the Bed in the Sleeping Area.) Tj
 T*
 /F1 11 Tf
 14 TL
 T*
 /F1 11 Tf
 14 TL
-(Soft Toy Rabbit: A soft toy rabbit is kept on the Bed in the Sleeping Area.) Tj
+(- Soft Toy Rabbit: A soft toy rabbit is kept on the Bed in the Sleeping Area.) Tj
 T*
 /F1 11 Tf
 14 TL
 T*
 /F1 11 Tf
 14 TL
-(MacBook Charger: The charger for the MacBook is stored on the Bedside Table in the Sleeping) Tj
+(- MacBook Charger: The charger for the MacBook is stored on the Bedside Table in the Sleeping) Tj
 T*
 /F1 11 Tf
 14 TL
@@ -131,7 +131,7 @@ T*
 T*
 /F1 11 Tf
 14 TL
-(Water Bottle: The water bottle has a dynamic location. It is either inside the College Bag \(if) Tj
+(- Water Bottle: The water bottle has a dynamic location. It is either inside the College Bag \(if) Tj
 T*
 /F1 11 Tf
 14 TL
@@ -142,14 +142,25 @@ T*
 T*
 /F1 11 Tf
 14 TL
-(Clothes: All clothes are stored inside the Wardrobe in the Storage Area.) Tj
+(- Clothes: All clothes are stored inside the Wardrobe in the Storage Area.) Tj
 T*
 /F1 11 Tf
 14 TL
 T*
 /F1 11 Tf
 14 TL
-(Toiletries: All bathroom utilities and toiletries are located inside the Bathroom.) Tj
+(- Shoes: The user's shoes are located on the floor directly below the Wardrobe in the Storage) Tj
+T*
+/F1 11 Tf
+14 TL
+(Area.) Tj
+T*
+/F1 11 Tf
+14 TL
+T*
+/F1 11 Tf
+14 TL
+(- Toiletries: All bathroom utilities and toiletries are located inside the Bathroom.) Tj
 T*
 /F1 11 Tf
 14 TL
@@ -163,7 +174,7 @@ T*
 T*
 /F1 11 Tf
 14 TL
-(Layout Overview: The room is divided into three main zones: The Workstation \(Study Table\), The) Tj
+(- Layout Overview: The room is divided into three main zones: The Workstation \(Study Table\), The) Tj
 T*
 /F1 11 Tf
 14 TL
@@ -174,18 +185,14 @@ T*
 T*
 /F1 11 Tf
 14 TL
-(From Bed to Bathroom: To go from the Bed to the Bathroom, walk forward and then turn left) Tj
-T*
-/F1 11 Tf
-14 TL
-(before reaching the room exit. The bathroom is a few steps from the bed.) Tj
+(- From Bed to Bathroom: To go from the Bed to the Bathroom, walk forward and then turn left.) Tj
 T*
 /F1 11 Tf
 14 TL
 T*
 /F1 11 Tf
 14 TL
-(From Bed to Study Table: To go from the Bed to the Study Table, stand up and face the wall) Tj
+(- From Bed to Study Table: To go from the Bed to the Study Table, stand up and face the wall) Tj
 T*
 /F1 11 Tf
 14 TL
@@ -196,11 +203,22 @@ T*
 T*
 /F1 11 Tf
 14 TL
-(From Study Table to Wardrobe: The Wardrobe is located [INSERT DIRECTION, e.g., to the right] of) Tj
+(- Wardrobe Location: The Wardrobe is located in the Storage Area, directly in front of the) Tj
 T*
 /F1 11 Tf
 14 TL
-(the Study Table.) Tj
+(Bathroom entrance.) Tj
+T*
+/F1 11 Tf
+14 TL
+T*
+/F1 11 Tf
+14 TL
+(- From Study Table to Wardrobe: Turn around from the Study Table to face the Bathroom; the) Tj
+T*
+/F1 11 Tf
+14 TL
+(Wardrobe will be in front of the Bathroom.) Tj
 T*
 /F1 11 Tf
 14 TL
@@ -225,5 +243,5 @@ trailer
 /Info 1 0 R
 >>
 startxref
-3195
+3490
 %%EOF

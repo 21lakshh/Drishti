@@ -22,6 +22,8 @@ import torch
 import numpy as np
 from PIL import Image
 from transformers import ZoeDepthForDepthEstimation, ZoeDepthImageProcessor
+from qdrant_client import AsyncQdrantClient, models
+from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -315,11 +317,100 @@ class RAGAgent(BaseAgent):
     def __init__(self) -> None:
         super().__init__(
             instructions=(
-                "You're the fallback navigator. Pull from building knowledge to guide the user to the target"
-                " if detection missed it. Be definitive about directions and confirm next steps. "
+                "You are a helpful navigation assistant. "
+                "You have access to a building knowledge base. "
+                "Use the provided context to answer the user's question about where their object might be located relative to their current location. "
+                "If the context provides specific directions, give them clearly. "
+                "If the context does not contain the answer, admit that you don't know and suggest checking a different room manually. "
                 "CRITICAL: Always respond in the user's preferred language."
             ),
         )
+        self.qdrant_client = AsyncQdrantClient(
+            url=os.getenv("QDRANT_URL"),
+            api_key=os.getenv("QDRANT_API_KEY"),
+        )
+        self.openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.collection_name = os.getenv("QDRANT_COLLECTION_NAME", "drishti")
+        self.user_id_filter = 1  # Hardcoded for now, later this will be adaded from livekit room metadata field
+
+    async def on_enter(self) -> None:
+        await super().on_enter(generate_reply=False)
+        
+        # Perform retrieval
+        context_message = await self._retrieve_context()
+        
+        # Inject retrieved knowledge into chat context
+        chat_ctx = self.chat_ctx.copy()
+        chat_ctx.add_message(
+            role="system",
+            content=f"RETRIEVED KNOWLEDGE BASE CONTEXT:\n{context_message}\n\nUse this information to guide the user."
+        )
+        await self.update_chat_ctx(chat_ctx)
+        self.session.generate_reply(tool_choice="auto")
+
+    async def _retrieve_context(self) -> str:
+        userdata = self.session.userdata
+        query_text = f"Where is {userdata.object_to_find}? I am currently at {userdata.user_location}."
+        
+        logger.info(f"RAG Query: {query_text}")
+
+        try:
+            # 1. Generate Embedding
+            embedding_response = await self.openai_client.embeddings.create(
+                input=query_text,
+                model="text-embedding-3-small"
+            )
+            query_vector = embedding_response.data[0].embedding
+
+            # 2. Search Qdrant (using query_points)
+            search_response = await self.qdrant_client.query_points(
+                collection_name=self.collection_name,
+                query=query_vector,
+                limit=3,
+                with_payload=True,
+                query_filter=models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="user_id",
+                            match=models.MatchValue(
+                                value=self.user_id_filter,
+                            ),
+                        )
+                    ]
+                ),
+            )
+            
+            # Extract points
+            results = search_response.points
+
+            if not results:
+                return "No relevant information found in the knowledge base."
+
+            # 3. Format Results
+            context_parts = []
+            for hit in results:
+                text = hit.payload.get("text", "")
+                context_parts.append(f"- {text}")
+            
+            return "\n".join(context_parts)
+
+        except Exception as e:
+            logger.error(f"RAG Retrieval failed: {e}", exc_info=True)
+            return "Error retrieving information from database."
+
+    @function_tool()
+    async def search_new_object(self, context: RunContext_T) -> tuple[Agent, str]:
+        """Call this when user wants to search for a different object or start over."""
+        logger.info("Function tool 'search_new_object' called - resetting and transferring to Greeting")
+        context.userdata.object_to_find = None
+        context.userdata.user_location = None
+        context.userdata.object_found = False
+        return await self._transfer_to_agent("greeter", context)
+
+    @function_tool()
+    async def end_session(self, context: RunContext_T) -> str:
+        """Call this when the user is satisfied with the information or wants to stop."""
+        return "Glad I could help. Safe travels!"
 
 class DepthEstimationAgent(BaseAgent):
     def __init__(self) -> None:

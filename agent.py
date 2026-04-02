@@ -1,10 +1,9 @@
 from dotenv import load_dotenv
 import logging 
 from livekit import agents
-from livekit.agents import AgentSession, Agent, RoomInputOptions, RunContext
+from livekit.agents import AgentSession, Agent, RoomInputOptions, RunContext, TurnHandlingOptions
 from livekit.plugins import (
     noise_cancellation,
-    silero,
     sarvam,
     )
 from livekit.agents.llm import function_tool
@@ -419,7 +418,7 @@ class DepthEstimationAgent(BaseAgent):
                 "You handle distance estimation to detected objects. Wait for the depth estimation results. "
                 "After estimation, ask if the user needs further assistance or wants to search for another object. "
                 "CRITICAL: Always respond in the user's preferred language. "
-                "Do not speak until estimation is complete."
+                "Do not speak until estimation is complete, please ask user to wait while you calculate the distance."
             ),
         )
         logger.info("Loading Depth Estimation model...")
@@ -538,7 +537,7 @@ async def entrypoint(ctx: agents.JobContext):
 
     session = AgentSession(
         stt = sarvam.STT(
-            model="saarika:v2.5",
+            model="saaras:v3",
             language=userdata.preferred_language_code
         ),
         llm="google/gemini-3-flash",
@@ -547,8 +546,19 @@ async def entrypoint(ctx: agents.JobContext):
             speaker="shubh",
             model="bulbul:v3"
         ),
-        vad=silero.VAD.load(),
-        turn_detection=MultilingualModel(),
+        turn_handling=TurnHandlingOptions(
+            turn_detection="vad",
+            endpointing={
+            "mode": "fixed",
+            "min_delay": 0.5,
+            "max_delay": 3.0,
+            },
+            interruption={
+            "mode": "adaptive",
+            "min_duration": 0.5,
+            "resume_false_interruption": True,
+            },
+        ),
         userdata=userdata
     )
 

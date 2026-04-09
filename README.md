@@ -18,7 +18,7 @@ Smart Voice Navigator is an intelligent voice assistant designed to help users f
 
 ## Architecture
 
-The application uses a multi-agent system where each agent handles a specific aspect of the navigation workflow:
+The application uses a decoupled multi-agent system where heavy ML inference is offloaded to a dedicated FastAPI model server, while the conversational flow is managed by LiveKit agents:
 
 ```mermaid
 graph TD
@@ -26,12 +26,14 @@ graph TD
     B -->|Yes: object, location, language| C[🔍 Object Detection Agent]
     B -->|No| A
     
-    C -->|YOLO + Semantic Matching| D{Object Found?}
+    C -->|API Call to Model Server| M((FastAPI Model Server))
+    M -.->|YOLO + Semantic Matching| D{Object Found?}
     
     D -->|Yes| E[📏 Depth Estimation Agent]
     D -->|No| F[🧠 RAG Agent]
     
-    E -->|ZoeDepth Analysis| G[📊 Distance Result]
+    E -->|API Call to Model Server| M
+    M -.->|ZoeDepth Analysis| G[📊 Distance Result]
     F -->|Knowledge Base Query| H[📍 Location Info]
     
     G -->|User wants more| I{Next Action?}
@@ -46,30 +48,20 @@ graph TD
     style F fill:#ffe1e1
     style G fill:#e1ffe1
     style H fill:#ffe1f5
+    style M fill:#ffe1b3,stroke:#ff9c00,stroke-width:2px,stroke-dasharray: 5 5
 ```
 
 ### Agent Breakdown
 
-1. **Greeting Agent**: Initial entry point that collects:
-   - Target object to find
-   - User's current location
-   - Preferred communication language
+1. **Greeting Agent**: Initial entry point that collects context (object, location, language).
+2. **ObjectDetection Agent**: Confirms object detection through the FastAPI model server using semantic similarity and handles partial matches.
+3. **DepthEstimation Agent**: Defers monocular depth estimation to the model server and interprets the real-world distance in meters.
+4. **RAG Agent**: Fallback option when object detection fails to query the knowledge base.
 
-2. **ObjectDetection Agent**: 
-   - Captures/processes images
-   - Runs YOLO11n object detection
-   - Uses semantic similarity (via sentence transformers) to match detected objects with user query
-   - Handles partial matches intelligently
-
-3. **DepthEstimation Agent**:
-   - Uses Intel ZoeDepth model for monocular depth estimation
-   - Calculates median distance to the detected object's bounding box
-   - Provides distance in meters
-
-4. **RAG Agent** (Knowledge Base):
-   - Fallback option when object detection fails
-   - Can query building/location knowledge base for object locations
-   - (Currently placeholder for future implementation)
+### Model Server (FastAPI)
+- Handles heavy computer vision and embedding models (YOLO11n, Intel ZoeDepth, Multilingual Sentence Transformers).
+- Exposes fast, asynchronous REST endpoints (`/detect` and `/depth`).
+- Runs independently to prevent event-loop blocking and ensure smooth real-time voice responses.
 
 ## Technology Stack
 
@@ -88,7 +80,11 @@ graph TD
 - **Multilingual Turn Detection**: Handles conversation turn-taking across languages
 - **BVC Noise Cancellation**: Background voice cancellation
 
-## Installation
+## Installation & Usage
+
+The recommended way to run the application is using **Docker**, which bundles the Model Server, LiveKit Voice Agent, and all ML dependencies.
+
+### Option A: Using Docker (Recommended)
 
 1. **Clone the repository**
 ```bash
@@ -96,31 +92,9 @@ git clone https://github.com/21lakshh/Smart-Voice-Navigator.git
 cd Smart-Voice-Navigator
 ```
 
-2. **Set up a virtual environment**
+2. **Set up environment variables**
+Create a `.env` file in the project directory:
 ```bash
-# Create the virtual environment
-python -m venv venv
-
-# Activate on macOS/Linux
-source venv/bin/activate
-
-# Activate on Windows
-venv\Scripts\activate
-```
-
-3. **Install dependencies**
-```bash
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-3. **Download YOLO model**
-   - The `yolo11n.pt` model should be in the project root
-   - Or download from [Ultralytics](https://github.com/ultralytics/ultralytics)
-
-4. **Set up environment variables**
-```bash
-# Create a .env file with the following:
 LIVEKIT_URL=<your-livekit-server-url>
 LIVEKIT_API_KEY=<your-api-key>
 LIVEKIT_API_SECRET=<your-api-secret>
@@ -128,66 +102,53 @@ SARVAM_API_KEY=<your-sarvam-api-key>
 GOOGLE_API_KEY=<your-google-api-key>
 ```
 
-## Configuration
-
-### Language Support
-
-The system supports the following languages with automatic STT/TTS configuration:
-
-| Language   | Code    |
-|------------|---------|
-| English    | en-IN   |
-| Hindi      | hi-IN   |
-| Bengali    | bn-IN   |
-| Kannada    | kn-IN   |
-| Malayalam  | ml-IN   |
-| Marathi    | mr-IN   |
-| Odia       | od-IN   |
-| Punjabi    | pa-IN   |
-| Tamil      | ta-IN   |
-| Telugu     | te-IN   |
-| Gujarati   | gu-IN   |
-
-### Model Configuration
-
-- **YOLO Detection Threshold**: 0.5 (semantic similarity)
-- **TTS Speaker**: "shubh" (Sarvam AI bulbul:v3)
-- **VAD Model**: Silero VAD
-- **Depth Model**: Intel/zoedepth-nyu-kitti
-
-## Usage
-
-### Running the Application
-
-1. **Start the agent in console**
+3. **Build and Run**
 ```bash
-python agent.py console
+# Build the unified container (downloads ML models into cache during build)
+docker build -t drishti-app .
+
+# Run the container (starts both the FastAPI server and LiveKit voice agent)
+docker run -p 4000:4000 -p 8000:8000 --env-file .env drishti-app
 ```
-2. **Start the agent in development**
+
+### Option B: Local Setup (Development)
+
+1. **Clone and setup virtual environment**
 ```bash
+git clone https://github.com/21lakshh/Smart-Voice-Navigator.git
+cd Smart-Voice-Navigator
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+2. **Set up `.env` file** with the keys listed above.
+
+3. **Start the applications** in separate terminal windows:
+```bash
+# Terminal 1: Start the FastAPI Model Server
+uvicorn model_server:app --host 0.0.0.0 --port 8000
+
+# Terminal 2: Start the LiveKit Voice Agent
 python agent.py dev
 ```
 
-The application will:
-- Start a health check server on port 4000
-- Connect to LiveKit server
-- Wait for incoming voice sessions
-
-3. **Connect via LiveKit Client**
-   - Use LiveKit's web/mobile client to connect to your room
-   - Start speaking to interact with the assistant
+### Connect via LiveKit Client
+- Use LiveKit's web/mobile client to connect to your room.
+- Start speaking to interact with the assistant in real-time.
 
 ## Project Structure
 
 ```
 Smart-Voice-Navigator/
-├── agent.py              # Main application with agent logic
-├── requirements.txt      # Python dependencies
-├── yolo11n.pt           # YOLO11 model weights
-├── .env                 # Environment variables (not in repo)
-├── data/
-│   └── test.jpg         # Test image for detection
-└── README.md            # This file
+├── agent.py              # Main application with LiveKit conversational agent logic
+├── model_server.py       # FastAPI server hosting YOLO and ZoeDepth models
+├── Dockerfile            # Unified container configuration
+├── start.sh              # Wrapper script to run both servers locally/in Docker
+├── requirements.txt      # Combined Python dependencies
+├── yolo11n.pt            # YOLO11 model weights (cached locally)
+├── .env                  # Environment variables (not in repo)
+└── README.md             # This file
 ```
 
 ## Key Components
